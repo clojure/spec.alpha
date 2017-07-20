@@ -149,7 +149,9 @@
   ([spec x]
    (conform spec x nil))
   ([spec x cc]
-   (conform* (specize spec) x cc)))
+   (conform spec x cc true))
+  ([spec x cc specize?]
+   (conform* (if specize? (specize spec) spec) x cc)))
 
 (defn unform
   "Given a spec and a value created by or compliant with a call to
@@ -768,10 +770,10 @@
   "Helper function that returns true when x is valid for spec."
   ([spec x]
      (let [spec (specize spec)]
-       (not (invalid? (conform* spec x nil)))))
+       (not (invalid? (conform spec x nil)))))
   ([spec x form]
      (let [spec (specize spec form)]
-       (not (invalid? (conform* spec x nil))))))
+       (not (invalid? (conform spec x nil))))))
 
 (defn- pvalid?
   "internal helper function that returns true when x is valid for spec."
@@ -977,7 +979,7 @@
                         (if (= i cnt)
                           ret
                           (let [v (x i)
-                                cv (conform* (specs i) v cc)]
+                                cv (conform (specs i) v cc false)]
                             (if (invalid? cv)
                               ::invalid
                               (recur (if (identical? cv v) ret (assoc ret i cv))
@@ -1030,20 +1032,20 @@
         cform (case (count preds)
                     2 (fn [x cc]
                         (let [specs @specs
-                              ret (conform* (specs 0) x cc)]
+                              ret (conform (specs 0) x cc false)]
                           (if (invalid? ret)
-                            (let [ret (conform* (specs 1) x cc)]
+                            (let [ret (conform (specs 1) x cc false)]
                               (if (invalid? ret)
                                 ::invalid
                                 (tagged-ret (keys 1) ret)))
                             (tagged-ret (keys 0) ret))))
                     3 (fn [x cc]
                         (let [specs @specs
-                              ret (conform* (specs 0) x cc)]
+                              ret (conform (specs 0) x cc false)]
                           (if (invalid? ret)
-                            (let [ret (conform* (specs 1) x cc)]
+                            (let [ret (conform (specs 1) x cc false)]
                               (if (invalid? ret)
-                                (let [ret (conform* (specs 2) x cc)]
+                                (let [ret (conform (specs 2) x cc false)]
                                   (if (invalid? ret)
                                     ::invalid
                                     (tagged-ret (keys 2) ret)))
@@ -1054,7 +1056,7 @@
                         (loop [i 0]
                           (if (< i (count specs))
                             (let [spec (specs i)]
-                              (let [ret (conform* spec x cc)]
+                              (let [ret (conform spec x cc false)]
                                 (if (invalid? ret)
                                   (recur (inc i))
                                   (tagged-ret (keys i) ret))))
@@ -1119,24 +1121,24 @@
         (case (count preds)
               2 (fn [x cc]
                   (let [specs @specs
-                        ret (conform* (specs 0) x cc)]
+                        ret (conform (specs 0) x cc false)]
                     (if (invalid? ret)
                       ::invalid
-                      (conform* (specs 1) ret cc))))
+                      (conform (specs 1) ret cc false))))
               3 (fn [x cc]
                   (let [specs @specs
-                        ret (conform* (specs 0) x cc)]
+                        ret (conform (specs 0) x cc false)]
                     (if (invalid? ret)
                       ::invalid
-                      (let [ret (conform* (specs 1) ret cc)]
+                      (let [ret (conform (specs 1) ret cc false)]
                         (if (invalid? ret)
                           ::invalid
-                          (conform* (specs 2) ret cc))))))
+                          (conform (specs 2) ret cc false))))))
               (fn [x cc]
                 (let [specs @specs]
                   (loop [ret x i 0]
                     (if (< i (count specs))
-                      (let [nret (conform* (specs i) ret cc)]
+                      (let [nret (conform (specs i) ret cc false)]
                         (if (invalid? nret)
                           ::invalid
                           ;;propagate conformed values
@@ -1256,7 +1258,7 @@
                      (let [[init add complete] (cfns x)]
                        (loop [ret (init x), i 0, [v & vs :as vseq] (seq x)]
                          (if vseq
-                           (let [cv (conform* spec v cc)]
+                           (let [cv (conform spec v cc false)]
                              (if (invalid? cv)
                                ::invalid
                                (recur (add ret i v cv) (inc i) vs)))
@@ -1783,7 +1785,7 @@
      (specize* [s _] s)
      
      Spec
-     (conform* [_ x cc] (let [ret (conform* @spec x cc)]
+     (conform* [_ x cc] (let [ret (conform @spec x cc false)]
                        (if (invalid? ret)
                          ::invalid
                          x)))
@@ -1803,7 +1805,7 @@
      (specize* [s _] s)
 
      Spec
-     (conform* [_ x cc] (if (nil? x) nil (conform* @spec x cc)))
+     (conform* [_ x cc] (if (nil? x) nil (conform @spec x cc false)))
      (unform* [_ x] (if (nil? x) nil (unform* @spec x)))
      (explain* [_ path via in x cc]
                (when-not (c/or (pvalid? @spec x cc) (nil? x))
