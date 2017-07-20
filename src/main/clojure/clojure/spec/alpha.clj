@@ -151,7 +151,12 @@
   ([spec x cc]
    (conform spec x cc true))
   ([spec x cc specize?]
-   (conform* (if specize? (specize spec) spec) x cc)))
+   (let [spec' (if specize? (specize spec) spec)]
+     (if-let [cf (if cc (cc spec))]
+       (let [conformed (cf spec' x cc)]
+         (c/or (c/and (= ::invalid conformed) conformed)
+               (conform* spec' conformed cc)))
+       (conform* spec' x cc)))))
 
 (defn unform
   "Given a spec and a value created by or compliant with a call to
@@ -198,6 +203,7 @@
       (assoc spec ::gfn gen-fn)
       (with-gen* (specize spec) gen-fn))))
 
+;; TODO: copy impl from spec-tools
 (defn explain-data* [spec path via in x cc]
   (let [probs (explain* (specize spec) path via in x cc)]
     (when-not (empty? probs)
