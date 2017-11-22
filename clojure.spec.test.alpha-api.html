@@ -1,0 +1,340 @@
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>clojure.spec.test.alpha - spec.alpha 0.1.144-SNAPSHOT API documentation</title>
+    <link rel="icon" href="static/favicon.png" />
+    <link rel="shortcut icon" href="static/favicon.png" />
+    <link rel="stylesheet" href="static/clojure.css" type="text/css" media="all" />
+    <link rel="stylesheet" href="static/wiki.css" type="text/css" media="all" />
+    <link rel="stylesheet" href="static/internal.css" type="text/css" media="all" />
+    <style>.menuWrapper{height: 36px;}</style>
+  </head>
+<!--
+This document was auto-generated from the source by the clojure autodoc system.
+To report errors or ask questions about the overall documentation structure, formatting,
+etc., contact Tom Faulhaber (google mail name: tomfaulhaber).
+For errors in the documentation of a particular namespace, contact the author of that
+namespace.
+-->
+  <body>
+    <div id="AllContentContainer">
+      <div id="Header">
+	<a href="index.html" id="Logo"><img src="static/clojure-icon.gif" width="100" height="100" alt="Clojure" /></a>
+	<h1><a href="index.html" id="page-header" title="page header title">spec.alpha API Reference</a></h1>
+      </div>
+      <div id="leftcolumn"><div style="text-align: center;"></div>
+<div class="menu">
+  <div class="WikiCustomNav WikiElement wiki">
+    <span class="toc-header"><span id="project-name">spec.alpha</span> <span id="version">0.1.144-SNAPSHOT</span> API</span><br />
+    <ul>
+      <li><a href="index.html" class="wiki_link">Overview</a></li>
+      <li><a href="api-index.html" class="wiki_link">API Index</a></li>
+    </ul>
+    <div class="NamespaceTOC">
+      <span class="toc-header">Namespaces</span>
+      <ul id="left-sidebar-list">
+        <li><a class="wiki_link" href="clojure.spec.alpha-api.html">clojure.spec.alpha</a></li><li><a class="wiki_link" href="clojure.spec.gen.alpha-api.html">clojure.spec.gen.alpha</a></li><li><a class="wiki_link" href="clojure.spec.test.alpha-api.html">clojure.spec.test.alpha</a></li>
+      </ul>
+    </div>
+    
+    <a class="wiki_link" href="https://clojure.org">Clojure Home</a>
+  </div>
+</div>
+</div>
+      <div id="rightcolumn">
+	<div id="Content">
+	  <div class="contentBox"><div class="innerContentBox">
+              <div class="wiki wikiPage" id="content_view">
+                <div id="right-sidebar"><div id="toc">
+  <h1 class="nopad">Table of Contents</h1>
+  <div class="toc-section" style="margin-left: 1em;">
+    <a style="margin-top: 3px;" href="#toc0">Overview</a>
+    
+  </div><div class="toc-section" style="margin-left: 1em;">
+    <a style="margin-top: 3px;" href="#"></a>
+    
+  </div><div class="toc-section" style="margin-left: 1em;">
+    <a style="margin-top: 3px;" href="#"></a>
+    
+  </div><div class="toc-section" style="margin-left: 1em;">
+    <a style="margin-top: 3px;" href="#var-section">Vars and Functions</a>
+    <div class="toc-entry" style="margin-left: 1em;">
+      <a href="#clojure.spec.test.alpha/abbrev-result" class="toc-entry-anchor">abbrev-result</a>
+      
+    </div><div class="toc-entry" style="margin-left: 1em;">
+      <a href="#clojure.spec.test.alpha/check" class="toc-entry-anchor">check</a>
+      
+    </div><div class="toc-entry" style="margin-left: 1em;">
+      <a href="#clojure.spec.test.alpha/check-fn" class="toc-entry-anchor">check-fn</a>
+      
+    </div><div class="toc-entry" style="margin-left: 1em;">
+      <a href="#clojure.spec.test.alpha/checkable-syms" class="toc-entry-anchor">checkable-syms</a>
+      
+    </div><div class="toc-entry" style="margin-left: 1em;">
+      <a href="#clojure.spec.test.alpha/enumerate-namespace" class="toc-entry-anchor">enumerate-namespace</a>
+      
+    </div><div class="toc-entry" style="margin-left: 1em;">
+      <a href="#clojure.spec.test.alpha/instrument" class="toc-entry-anchor">instrument</a>
+      
+    </div><div class="toc-entry" style="margin-left: 1em;">
+      <a href="#clojure.spec.test.alpha/instrumentable-syms" class="toc-entry-anchor">instrumentable-syms</a>
+      
+    </div><div class="toc-entry" style="margin-left: 1em;">
+      <a href="#clojure.spec.test.alpha/summarize-results" class="toc-entry-anchor">summarize-results</a>
+      
+    </div><div class="toc-entry" style="margin-left: 1em;">
+      <a href="#clojure.spec.test.alpha/unstrument" class="toc-entry-anchor">unstrument</a>
+      
+    </div><div class="toc-entry" style="margin-left: 1em;">
+      <a href="#clojure.spec.test.alpha/with-instrument-disabled" class="toc-entry-anchor">with-instrument-disabled</a>
+      
+    </div>
+  </div><div class="toc-section" style="margin-left: 1em;">
+    <a style="margin-top: 3px;" href="#"></a>
+    
+  </div>
+</div>
+</div>
+                <div id="content-tag"><h1 id="overview">API for <span id="clojure.spec.test.alpha">clojure.spec.test.alpha</span>
+  - <span id="header-project">spec.alpha</span> <span id="header-version">0.1.144-SNAPSHOT</span><span id="header-status-block"> (<span id="header-status">in development</span>)</span>
+  </h1>
+
+<br />Full namespace name: <span id="long-name">clojure.spec.test.alpha</span>
+<p></p>
+<h2>Overview</h2>
+
+<pre id="namespace-docstr"></pre>
+
+
+<br />
+
+
+
+<div id="var-section">
+  <p></p>
+  <h2>Public Variables and Functions</h2>
+  <div id="var-entry">
+    <br />
+    <hr />
+    <h2 id="clojure.spec.test.alpha/abbrev-result">abbrev-result</h2>
+    <span id="var-type">function</span><br />
+    <pre id="var-usage">Usage: (abbrev-result x)
+</pre>
+    <pre id="var-docstr">Given a check result, returns an abbreviated version
+suitable for summary use.</pre>
+    <pre id="var-specs"></pre>
+    
+    
+    <a id="var-source" href="https://github.com/clojure/spec.alpha/blob/2824ad49df8deadcb4b75acdf624e732a85b4ac7/src/main/clojure/clojure/spec/test/alpha.clj#L438">Source</a>
+  </div><div id="var-entry">
+    <br />
+    <hr />
+    <h2 id="clojure.spec.test.alpha/check">check</h2>
+    <span id="var-type">function</span><br />
+    <pre id="var-usage">Usage: (check)
+       (check sym-or-syms)
+       (check sym-or-syms opts)
+</pre>
+    <pre id="var-docstr">Run generative tests for spec conformance on vars named by
+sym-or-syms, a symbol or collection of symbols. If sym-or-syms
+is not specified, check all checkable vars.
+
+The opts map includes the following optional keys, where stc
+aliases clojure.spec.test.check: 
+
+::stc/opts  opts to flow through test.check/quick-check
+:gen        map from spec names to generator overrides
+
+The ::stc/opts include :num-tests in addition to the keys
+documented by test.check. Generator overrides are passed to
+spec/gen when generating function args.
+
+Returns a lazy sequence of check result maps with the following
+keys
+
+:spec       the spec tested
+:sym        optional symbol naming the var tested
+:failure    optional test failure
+::stc/ret   optional value returned by test.check/quick-check
+
+The value for :failure can be any exception. Exceptions thrown by
+spec itself will have an ::s/failure value in ex-data:
+
+:check-failed   at least one checked return did not conform
+:no-args-spec   no :args spec provided
+:no-fn          no fn provided
+:no-fspec       no fspec provided
+:no-gen         unable to generate :args
+:instrument     invalid args detected by instrument</pre>
+    <pre id="var-specs"></pre>
+    
+    
+    <a id="var-source" href="https://github.com/clojure/spec.alpha/blob/2824ad49df8deadcb4b75acdf624e732a85b4ac7/src/main/clojure/clojure/spec/test/alpha.clj#L372">Source</a>
+  </div><div id="var-entry">
+    <br />
+    <hr />
+    <h2 id="clojure.spec.test.alpha/check-fn">check-fn</h2>
+    <span id="var-type">function</span><br />
+    <pre id="var-usage">Usage: (check-fn f spec)
+       (check-fn f spec opts)
+</pre>
+    <pre id="var-docstr">Runs generative tests for fn f using spec and opts. See
+'check' for options and return.</pre>
+    <pre id="var-specs"></pre>
+    
+    
+    <a id="var-source" href="https://github.com/clojure/spec.alpha/blob/2824ad49df8deadcb4b75acdf624e732a85b4ac7/src/main/clojure/clojure/spec/test/alpha.clj#L355">Source</a>
+  </div><div id="var-entry">
+    <br />
+    <hr />
+    <h2 id="clojure.spec.test.alpha/checkable-syms">checkable-syms</h2>
+    <span id="var-type">function</span><br />
+    <pre id="var-usage">Usage: (checkable-syms)
+       (checkable-syms opts)
+</pre>
+    <pre id="var-docstr">Given an opts map as per check, returns the set of syms that
+can be checked.</pre>
+    <pre id="var-specs"></pre>
+    
+    
+    <a id="var-source" href="https://github.com/clojure/spec.alpha/blob/2824ad49df8deadcb4b75acdf624e732a85b4ac7/src/main/clojure/clojure/spec/test/alpha.clj#L363">Source</a>
+  </div><div id="var-entry">
+    <br />
+    <hr />
+    <h2 id="clojure.spec.test.alpha/enumerate-namespace">enumerate-namespace</h2>
+    <span id="var-type">function</span><br />
+    <pre id="var-usage">Usage: (enumerate-namespace ns-sym-or-syms)
+</pre>
+    <pre id="var-docstr">Given a symbol naming an ns, or a collection of such symbols,
+returns the set of all symbols naming vars in those nses.</pre>
+    <pre id="var-specs"></pre>
+    
+    
+    <a id="var-source" href="https://github.com/clojure/spec.alpha/blob/2824ad49df8deadcb4b75acdf624e732a85b4ac7/src/main/clojure/clojure/spec/test/alpha.clj#L44">Source</a>
+  </div><div id="var-entry">
+    <br />
+    <hr />
+    <h2 id="clojure.spec.test.alpha/instrument">instrument</h2>
+    <span id="var-type">function</span><br />
+    <pre id="var-usage">Usage: (instrument)
+       (instrument sym-or-syms)
+       (instrument sym-or-syms opts)
+</pre>
+    <pre id="var-docstr">Instruments the vars named by sym-or-syms, a symbol or collection
+of symbols, or all instrumentable vars if sym-or-syms is not
+specified.
+
+If a var has an :args fn-spec, sets the var's root binding to a
+fn that checks arg conformance (throwing an exception on failure)
+before delegating to the original fn.
+
+The opts map can be used to override registered specs, and/or to
+replace fn implementations entirely. Opts for symbols not included
+in sym-or-syms are ignored. This facilitates sharing a common
+options map across many different calls to instrument.
+
+The opts map may have the following keys:
+
+  :spec     a map from var-name symbols to override specs
+  :stub     a set of var-name symbols to be replaced by stubs
+  :gen      a map from spec names to generator overrides
+  :replace  a map from var-name symbols to replacement fns
+
+:spec overrides registered fn-specs with specs your provide. Use
+:spec overrides to provide specs for libraries that do not have
+them, or to constrain your own use of a fn to a subset of its
+spec'ed contract.
+
+:stub replaces a fn with a stub that checks :args, then uses the
+:ret spec to generate a return value.
+
+:gen overrides are used only for :stub generation.
+
+:replace replaces a fn with a fn that checks args conformance, then
+invokes the fn you provide, enabling arbitrary stubbing and mocking.
+
+:spec can be used in combination with :stub or :replace.
+
+Returns a collection of syms naming the vars instrumented.</pre>
+    <pre id="var-specs"></pre>
+    
+    
+    <a id="var-source" href="https://github.com/clojure/spec.alpha/blob/2824ad49df8deadcb4b75acdf624e732a85b4ac7/src/main/clojure/clojure/spec/test/alpha.clj#L210">Source</a>
+  </div><div id="var-entry">
+    <br />
+    <hr />
+    <h2 id="clojure.spec.test.alpha/instrumentable-syms">instrumentable-syms</h2>
+    <span id="var-type">function</span><br />
+    <pre id="var-usage">Usage: (instrumentable-syms)
+       (instrumentable-syms opts)
+</pre>
+    <pre id="var-docstr">Given an opts map as per instrument, returns the set of syms
+that can be instrumented.</pre>
+    <pre id="var-specs"></pre>
+    
+    
+    <a id="var-source" href="https://github.com/clojure/spec.alpha/blob/2824ad49df8deadcb4b75acdf624e732a85b4ac7/src/main/clojure/clojure/spec/test/alpha.clj#L199">Source</a>
+  </div><div id="var-entry">
+    <br />
+    <hr />
+    <h2 id="clojure.spec.test.alpha/summarize-results">summarize-results</h2>
+    <span id="var-type">function</span><br />
+    <pre id="var-usage">Usage: (summarize-results check-results)
+       (summarize-results check-results summary-result)
+</pre>
+    <pre id="var-docstr">Given a collection of check-results, e.g. from 'check', pretty
+prints the summary-result (default abbrev-result) of each.
+
+Returns a map with :total, the total number of results, plus a
+key with a count for each different :type of result.</pre>
+    <pre id="var-specs"></pre>
+    
+    
+    <a id="var-source" href="https://github.com/clojure/spec.alpha/blob/2824ad49df8deadcb4b75acdf624e732a85b4ac7/src/main/clojure/clojure/spec/test/alpha.clj#L448">Source</a>
+  </div><div id="var-entry">
+    <br />
+    <hr />
+    <h2 id="clojure.spec.test.alpha/unstrument">unstrument</h2>
+    <span id="var-type">function</span><br />
+    <pre id="var-usage">Usage: (unstrument)
+       (unstrument sym-or-syms)
+</pre>
+    <pre id="var-docstr">Undoes instrument on the vars named by sym-or-syms, specified
+as in instrument. With no args, unstruments all instrumented vars.
+Returns a collection of syms naming the vars unstrumented.</pre>
+    <pre id="var-specs"></pre>
+    
+    
+    <a id="var-source" href="https://github.com/clojure/spec.alpha/blob/2824ad49df8deadcb4b75acdf624e732a85b4ac7/src/main/clojure/clojure/spec/test/alpha.clj#L259">Source</a>
+  </div><div id="var-entry">
+    <br />
+    <hr />
+    <h2 id="clojure.spec.test.alpha/with-instrument-disabled">with-instrument-disabled</h2>
+    <span id="var-type">macro</span><br />
+    <pre id="var-usage">Usage: (with-instrument-disabled &amp; body)
+</pre>
+    <pre id="var-docstr">Disables instrument's checking of calls, within a scope.</pre>
+    <pre id="var-specs"></pre>
+    
+    
+    <a id="var-source" href="https://github.com/clojure/spec.alpha/blob/2824ad49df8deadcb4b75acdf624e732a85b4ac7/src/main/clojure/clojure/spec/test/alpha.clj#L68">Source</a>
+  </div>
+</div>
+
+
+</div>
+              </div>
+            </div>
+          </div>
+	</div>
+	<div id="foot">
+	  <div id="copyright" style="text-align: center;">Copyright 2007-2017 by Rich Hickey and the various contributors</div>
+	</div>
+      </div>
+      <div id="DesignedBy">Logo &amp; site design by <a href="http://www.tomhickey.com" title="Visit Tom Hickey's website.">Tom Hickey</a>.<br />
+      Clojure auto-documentation system by Tom Faulhaber.</div>
+    </div>
+    <!-- /AllContentContainer -->
+  </body>
+
+</html>
