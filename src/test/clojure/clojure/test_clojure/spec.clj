@@ -215,6 +215,28 @@
     [{10 10 20 "x"}]
     [{10 10 20 "x"}]))
 
+(deftest conforming-callback-test
+  (let [string->int-conforming
+        (fn [spec]
+          (condp = spec
+            int? (fn [_ x _]
+                   (cond
+                     (int? x) x
+                     (string? x) (try
+                                   (Long/parseLong x)
+                                   (catch Exception _
+                                     ::s/invalid))
+                     :else ::s/invalid))
+            :else nil))]
+
+    (testing "no conforming callback"
+      (is (= 1 (s/conform int? 1)))
+      (is (= ::s/invalid (s/conform int? "1"))))
+
+    (testing "with conforming callback"
+      (is (= 1 (s/conform int? 1 string->int-conforming)))
+      (is (= 1 (s/conform int? "1" string->int-conforming))))))
+
 (comment
   (require '[clojure.test :refer (run-tests)])
   (in-ns 'clojure.test-clojure.spec)
