@@ -18,9 +18,14 @@
 (in-ns 'clojure.spec.test.alpha)
 (alias 'stc 'clojure.spec.test.check)
 
-(defn- throwable?
-  [x]
-  (instance? Throwable x))
+#?(:clj
+   (defn- throwable?
+     [x]
+     (instance? Throwable x))
+   :clje
+   (defn- error?
+     [x]
+     (satisfies? clojerl.IError x)))
 
 (defn ->sym
   [x]
@@ -33,7 +38,8 @@
     (let [v (and (symbol? s-or-v) (resolve s-or-v))]
       (if (var? v)
         v
-        (throw (IllegalArgumentException. (str (pr-str s-or-v) " does not name a var")))))))
+        (throw (#?(:clj IllegalArgumentException. :clje clojerl.Error.)
+                (str (pr-str s-or-v) " does not name a var")))))))
 
 (defn- collectionize
   [x]
@@ -86,7 +92,8 @@ guessing the original Clojure names. Returns a map with
 For non-Clojure fns, :scope and :local-fn will be absent."
   [[cls method file line]]
   (let [clojure? (contains? '#{invoke invokeStatic} method)
-        demunge #(clojure.lang.Compiler/demunge %)
+        demunge #?(:clj #(clojure.lang.Compiler/demunge %)
+                   :clje identity)
         degensym #(str/replace % #"--.*" "")
         [ns-sym name-sym local] (when clojure?
                                   (->> (str/split (str cls) #"\$" 3)
@@ -108,7 +115,7 @@ failure in instrument."
   [elems]
   (let [plumbing? (fn [{:keys [var-scope]}]
                     (contains? '#{clojure.spec.test.alpha/spec-checking-fn} var-scope))]
-    (sequence (comp (map StackTraceElement->vec)
+    (sequence (comp #?(:clj (map StackTraceElement->vec))
                     (map interpret-stack-trace-element)
                     (filter :var-scope)
                     (drop-while plumbing?))
@@ -120,7 +127,10 @@ failure in instrument."
         conform! (fn [v role spec data args]
                    (let [conformed (s/conform spec data)]
                      (if (= ::s/invalid conformed)
-                       (let [caller (->> (.getStackTrace (Thread/currentThread))
+                       (let [caller (->> #?(:clj (.getStackTrace (Thread/currentThread))
+                                            :clje (-> (erlang/self)
+                                                      (erlang/process_info :current_stacktrace)
+                                                      second))
                                          stacktrace-relevant-to-instrument
                                          first)
                              ed (merge (assoc (s/explain-data* spec [] [] [] data)
@@ -139,8 +149,10 @@ failure in instrument."
        (with-instrument-disabled
          (when (:args fn-spec) (conform! v :args (:args fn-spec) args args))
          (binding [*instrument-enabled* true]
-           (.applyTo ^clojure.lang.IFn f args)))
-       (.applyTo ^clojure.lang.IFn f args)))))
+           #?(:clj (.applyTo ^clojure.lang.IFn f args)
+              :clje (.apply ^clojerl.IFn f (clj_rt/to_list args)))))
+       #?(:clj (.applyTo ^clojure.lang.IFn f args)
+          :clje (.apply ^clojerl.IFn f (clj_rt/to_list args)))))))
 
 (defn- no-fspec
   [v spec]
@@ -248,7 +260,8 @@ Returns a collection of syms naming the vars instrumented."
   ([] (instrument (instrumentable-syms)))
   ([sym-or-syms] (instrument sym-or-syms nil))
   ([sym-or-syms opts]
-     (locking instrumented-vars
+     (#?@(:clj [locking instrumented-vars]
+          :clje [do])
        (into
         []
         (comp (filter (instrumentable-syms opts))
@@ -263,7 +276,8 @@ as in instrument. With no args, unstruments all instrumented vars.
 Returns a collection of syms naming the vars unstrumented."
   ([] (unstrument (map ->sym (keys @instrumented-vars))))
   ([sym-or-syms]
-     (locking instrumented-vars
+     (#?@(:clj [locking instrumented-vars]
+          :clje [do])
        (into
         []
         (comp (filter symbol?)
@@ -303,8 +317,8 @@ with explain-data + ::s/failure."
 (defn- quick-check
   [f specs {gen :gen opts ::stc/opts}]
   (let [{:keys [num-tests] :or {num-tests 1000}} opts
-        g (try (s/gen (:args specs) gen) (catch Throwable t t))]
-    (if (throwable? g)
+        g (try (s/gen (:args specs) gen) (catch #?(:clj Throwable :clje _) t t))]
+    (if (#?(:clj throwable? :clje error?) g)
       {:result g}
       (let [prop (gen/for-all* [g] #(check-call f specs %))]
         (apply gen/quick-check num-tests prop (mapcat identity opts))))))
@@ -331,11 +345,11 @@ with explain-data + ::s/failure."
       (or (nil? f) (some-> v meta :macro))
       {:failure (ex-info "No fn to spec" {::s/failure :no-fn})
        :sym s :spec spec}
-    
+
       (:args specd)
       (let [tcret (quick-check f specd opts)]
         (make-check-result s spec tcret))
-    
+
       :default
       {:failure (ex-info "No :args spec" {::s/failure :no-args-spec})
        :sym s :spec spec})
@@ -376,7 +390,7 @@ sym-or-syms, a symbol or collection of symbols. If sym-or-syms
 is not specified, check all checkable vars.
 
 The opts map includes the following optional keys, where stc
-aliases clojure.spec.test.check: 
+aliases clojure.spec.test.check:
 
 ::stc/opts  opts to flow through test.check/quick-check
 :gen        map from spec names to generator overrides
@@ -462,6 +476,3 @@ key with a count for each different :type of result."
             (update (result-type result) (fnil inc 0))))
       {:total 0}
        check-results)))
-
-
-

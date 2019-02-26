@@ -4,13 +4,15 @@
             [clojure.spec.test.alpha :as stest]
             [clojure.test :refer :all]))
 
-(set! *warn-on-reflection* true)
+(set! #?(:clj *warn-on-reflection*
+         :clje *warn-on-infer*) true)
 
 (defmacro result-or-ex [x]
   `(try
      ~x
-     (catch Throwable t#
-       (.getName (class t#)))))
+     (catch #?(:clj Throwable :clje _#) t#
+       #?(:clj (.getName (class t#))
+          :clje (str (type t#))))))
 
 (def even-count? #(even? (count %)))
 
@@ -40,7 +42,8 @@
         v (s/coll-of keyword? :kind vector?)
         coll (s/coll-of keyword?)
         lrange (s/int-in 7 42)
-        drange (s/double-in :infinite? false :NaN? false :min 3.1 :max 3.2)
+        drange #?(:clj (s/double-in :infinite? false :NaN? false :min 3.1 :max 3.2)
+                  :clje (s/double-in :min 3.1 :max 3.2))
         irange (s/inst-in #inst "1939" #inst "1946")
         ]
     (are [spec x conformed ed]
@@ -62,7 +65,7 @@
       drange 3.0 ::s/invalid [{:pred '(clojure.core/fn [%] (clojure.core/<= 3.1 %)), :val 3.0}]
       drange 3.1 3.1 nil
       drange 3.2 3.2 nil
-      drange Double/POSITIVE_INFINITY ::s/invalid [{:pred '(clojure.core/fn [%] (clojure.core/not (Double/isInfinite %))), :val Double/POSITIVE_INFINITY}]
+      #?@(:clj [drange Double/POSITIVE_INFINITY ::s/invalid [{:pred '(clojure.core/fn [%] (clojure.core/not (Double/isInfinite %))), :val Double/POSITIVE_INFINITY}]])
       ;; can't use equality-based test for Double/NaN
       ;; drange Double/NaN ::s/invalid {[] {:pred '(clojure.core/fn [%] (clojure.core/not (Double/isNaN %))), :val Double/NaN}}
 
@@ -73,8 +76,10 @@
       a 6 6 nil
       a 3 ::s/invalid '[{:pred (clojure.core/fn [%] (clojure.core/> % 5)), :val 3}]
       a 20 ::s/invalid '[{:pred (clojure.core/fn [%] (clojure.core/< % 10)), :val 20}]
-      a nil "java.lang.NullPointerException" "java.lang.NullPointerException"
-      a :k "java.lang.ClassCastException" "java.lang.ClassCastException"
+      a nil #?(:clj "java.lang.NullPointerException" :clje ::s/invalid)
+            #?(:clj "java.lang.NullPointerException" :clje '[{:pred (clojure.core/fn [%] (clojure.core/< % 10)), :path [], :via [], :val nil, :in []}])
+      a :k #?(:clj "java.lang.ClassCastException" :clje ::s/invalid)
+           #?(:clj "java.lang.ClassCastException" :clje '[{:pred (clojure.core/fn [%] (clojure.core/< % 10)), :path [], :via [], :val :k, :in []}])
 
       o "a" [:s "a"] nil
       o :a [:k :a] nil
@@ -249,7 +254,7 @@
   (s/def ::a nat-int?)
   (s/def ::b boolean?)
   (s/def ::c keyword?)
-  (s/def ::d double?)
+  (s/def ::d #?(:clj double? :clje float?))
   (s/def ::e inst?)
 
   (is (= #{[::a]
