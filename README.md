@@ -16,38 +16,38 @@ For more information:
 Releases and Dependency Information
 ========================================
 
-Latest stable release: 0.2.176
+Latest stable release: 0.2.187
 
-* [All Released Versions](http://search.maven.org/#search%7Cgav%7C1%7Cg%3A%22org.clojure%22%20AND%20a%3A%22spec.alpha%22)
+* [All Released Versions](https://search.maven.org/#search%7Cgav%7C1%7Cg%3A%22org.clojure%22%20AND%20a%3A%22spec.alpha%22)
 * [Development Snapshot Versions](https://oss.sonatype.org/index.html#nexus-search;gav~org.clojure~spec.alpha~~~)
 
 [deps.edn](https://clojure.org/guides/deps_and_cli) dependency information:
 
-    org.clojure/spec.alpha {:mvn/version "0.2.176"}
+    org.clojure/spec.alpha {:mvn/version "0.2.187"}
 
 [Leiningen](https://github.com/technomancy/leiningen) dependency information:
 
-    [org.clojure/spec.alpha "0.2.176"]
+    [org.clojure/spec.alpha "0.2.187"]
 
-[Maven](http://maven.apache.org/) dependency information:
+[Maven](https://maven.apache.org/) dependency information:
 
     <dependency>
       <groupId>org.clojure</groupId>
       <artifactId>spec.alpha</artifactId>
-      <version>0.2.176</version>
+      <version>0.2.187</version>
     </dependency>
 
 Developer Information
 ========================================
 
-* [API docs](http://clojure.github.io/spec.alpha/)
+* [API docs](https://clojure.github.io/spec.alpha/)
 * [GitHub project](https://github.com/clojure/spec.alpha)
 * [Changelog](https://github.com/clojure/spec.alpha/blob/master/CHANGES.md)
-* [Bug Tracker](http://dev.clojure.org/jira/browse/CLJ)
-* [Continuous Integration](http://build.clojure.org/job/spec.alpha/)
-* [Compatibility Test Matrix](http://build.clojure.org/job/spec.alpha-test-matrix/)
+* [Bug Tracker](https://clojure.atlassian.net/browse/CLJ)
+* [Continuous Integration](https://build.clojure.org/job/spec.alpha/)
+* [Compatibility Test Matrix](https://build.clojure.org/job/spec.alpha-test-matrix/)
 
 Copyright and License
 ========================================
 
-Copyright (c) Rich Hickey, and contributors, 2018. All rights reserved.  The use and distribution terms for this software are covered by the Eclipse Public License 1.0 (http://opensource.org/licenses/eclipse-1.0.php) which can be found in the file epl-v10.html at the root of this distribution. By using this software in any fashion, you are agreeing to be bound bythe terms of this license.  You must not remove this notice, or any other, from this software.
+Copyright (c) Rich Hickey, and contributors, 2018-2020. All rights reserved.  The use and distribution terms for this software are covered by the Eclipse Public License 1.0 (https://opensource.org/licenses/eclipse-1.0.php) which can be found in the file epl-v10.html at the root of this distribution. By using this software in any fashion, you are agreeing to be bound bythe terms of this license.  You must not remove this notice, or any other, from this software.

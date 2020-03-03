@@ -1,5 +1,9 @@
 # Change Log for spec.alpha
 
+## Version 0.2.187 on Mar 3, 2020
+
+* [CLJ-1472](https://dev.clojure.org/jira/browse/CLJ-1472) Fix use of locking to be more amenable to Graal analyzer
+
 ## Version 0.2.176 on Sept 4, 2018
 
 * [CLJ-2373](https://dev.clojure.org/jira/browse/CLJ-2373) Don't print ex-info into spec errors
