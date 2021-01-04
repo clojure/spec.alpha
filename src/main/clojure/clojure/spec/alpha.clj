@@ -271,7 +271,7 @@
 
 (defn explain-str
   "Given a spec and a value that fails to conform, returns an explanation as a string."
-  [spec x]
+  ^String [spec x]
   (with-out-str (explain spec x)))
 
 (declare valid?)
