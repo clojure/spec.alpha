@@ -3,6 +3,7 @@
 ## next
 
 * Type hint return value of s/explain-str
+* Update Clojure dependency to Clojure 1.10.1
 
 ## Version 0.2.187 on Mar 3, 2020
 
