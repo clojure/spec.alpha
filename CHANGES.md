@@ -1,6 +1,6 @@
 # Change Log for spec.alpha
 
-## next
+## Version 0.2.194 on Jan 5, 2021
 
 * Type hint return value of s/explain-str
 * Update Clojure dependency to Clojure 1.10.1

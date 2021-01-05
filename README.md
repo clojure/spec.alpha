@@ -16,25 +16,25 @@ For more information:
 Releases and Dependency Information
 ========================================
 
-Latest stable release: 0.2.187
+Latest stable release: 0.2.194
 
 * [All Released Versions](https://search.maven.org/#search%7Cgav%7C1%7Cg%3A%22org.clojure%22%20AND%20a%3A%22spec.alpha%22)
 * [Development Snapshot Versions](https://oss.sonatype.org/index.html#nexus-search;gav~org.clojure~spec.alpha~~~)
 
 [deps.edn](https://clojure.org/guides/deps_and_cli) dependency information:
 
-    org.clojure/spec.alpha {:mvn/version "0.2.187"}
+    org.clojure/spec.alpha {:mvn/version "0.2.194"}
 
 [Leiningen](https://github.com/technomancy/leiningen) dependency information:
 
-    [org.clojure/spec.alpha "0.2.187"]
+    [org.clojure/spec.alpha "0.2.194"]
 
 [Maven](https://maven.apache.org/) dependency information:
 
     <dependency>
       <groupId>org.clojure</groupId>
       <artifactId>spec.alpha</artifactId>
-      <version>0.2.187</version>
+      <version>0.2.194</version>
     </dependency>
 
 Developer Information
