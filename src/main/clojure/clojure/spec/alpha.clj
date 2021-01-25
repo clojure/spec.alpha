@@ -1793,7 +1793,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; non-primitives ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (clojure.spec.alpha/def ::kvs->map (conformer #(zipmap (map ::k %) (map ::v %)) #(map (fn [[k v]] {::k k ::v v}) %)))
 
-(clojure.spec.alpha/def ::lift-map (conformer first list))
+(clojure.spec.alpha/def ::lift-map (conformer identity list))
 
 (defmacro keys*
   "takes the same arguments as spec/keys and returns a regex op that matches sequences of key/values,
@@ -1811,8 +1811,10 @@
   {:i1 42, :m {:a 1, :c 2, :d 4}, :i2 99}"
   [& kspecs]
   `(let [mspec# (keys ~@kspecs)]
-     (with-gen (alt :m (clojure.spec.alpha/& mspec# ::lift-map)
-                    :s (clojure.spec.alpha/& (* (cat ::k keyword? ::v any?)) ::kvs->map mspec#))
+     (with-gen (clojure.spec.alpha/&
+                (alt :m (clojure.spec.alpha/& mspec# ::lift-map)
+                     :s (clojure.spec.alpha/& (* (cat ::k keyword? ::v any?)) ::kvs->map mspec#))
+                (conformer second))
        (fn [] (gen/fmap (fn [m#] (apply concat m#)) (gen mspec#))))))
 
 (defn ^:skip-wiki nonconforming

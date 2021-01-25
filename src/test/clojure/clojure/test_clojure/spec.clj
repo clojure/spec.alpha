@@ -302,8 +302,8 @@
 (s/fdef add :args (s/keys* :opt [::a ::b]))
 (stest/instrument `add)
 
-(deftest lifted-map-keys
-  (testing ""
+(deftest keys-star
+  (testing "that a seq of a singleton map is accepted in the keys* position"
     (let [m {:a 1 :b 2}
           {:keys [a b]} (list m)]
       (is (= 3 (add :a 1 :b 2)))
@@ -311,8 +311,9 @@
       (is (= a 1))
       (is (= b 2))
       (is (thrown? clojure.lang.ExceptionInfo (add {:a 1 :b 2} {:c 3})))))
-  (testing ""
-    ))
+  (testing "that keys* conforms, unforms, gens, and that explain data looks correct"
+    (is (= {:a 1 :c 2} (s/conform (s/keys* :req-un [::a ::c]) [:a 1 :c 2])))
+    (is (= {:a 1 :c 2} (s/conform (s/keys* :req-un [::a ::c]) (list {:a 1 :c 2}))))))
 
 (comment
   (require '[clojure.test :refer (run-tests)])
