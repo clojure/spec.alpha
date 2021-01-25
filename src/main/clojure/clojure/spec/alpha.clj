@@ -1791,7 +1791,9 @@
      (describe* [_] `(fspec :args ~aform :ret ~rform :fn ~fform)))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; non-primitives ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(clojure.spec.alpha/def ::kvs->map (conformer #(zipmap (map ::k %) (map ::v %)) #(map (fn [[k v]] {::k k ::v v}) %)))
+(def kvs<-map #(map (fn [[k v]] {::k k ::v v}) %))
+
+(clojure.spec.alpha/def ::kvs->map (conformer #(zipmap (map ::k %) (map ::v %)) kvs<-map))
 
 (clojure.spec.alpha/def ::lift-map (conformer identity list))
 
