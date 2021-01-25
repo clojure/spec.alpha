@@ -296,6 +296,21 @@
     :a 'clojure.core/vector?
     [] '(clojure.core/= (clojure.core/count %) 1)))
 
+(defn add [& {:keys [a b]}] (+ a b))
+(s/def ::a any?)
+(s/def ::b any?)
+(s/fdef add :args (s/keys* :opt [::a ::b]))
+(stest/instrument `add)
+
+(deftest lifted-map-keys
+  (let [m {:a 1 :b 2}
+        {:keys [a b]} (list m)]
+    (is (= 3 (add :a 1 :b 2)))
+    (is (= 3 (add {:a 1 :b 2})))
+    (is (= a 1))
+    (is (= b 2))
+    (is (= 3 (add {:a 1 :b 2} {:c 3})))))
+
 (comment
   (require '[clojure.test :refer (run-tests)])
   (in-ns 'clojure.test-clojure.spec)
