@@ -303,13 +303,16 @@
 (stest/instrument `add)
 
 (deftest lifted-map-keys
-  (let [m {:a 1 :b 2}
-        {:keys [a b]} (list m)]
-    (is (= 3 (add :a 1 :b 2)))
-    (is (= 3 (add {:a 1 :b 2})))
-    (is (= a 1))
-    (is (= b 2))
-    (is (= 3 (add {:a 1 :b 2} {:c 3})))))
+  (testing ""
+    (let [m {:a 1 :b 2}
+          {:keys [a b]} (list m)]
+      (is (= 3 (add :a 1 :b 2)))
+      (is (= 3 (add {:a 1 :b 2})))
+      (is (= a 1))
+      (is (= b 2))
+      (is (thrown? clojure.lang.ExceptionInfo (add {:a 1 :b 2} {:c 3})))))
+  (testing ""
+    ))
 
 (comment
   (require '[clojure.test :refer (run-tests)])
