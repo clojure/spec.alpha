@@ -36,7 +36,7 @@
   </developers>
 
   <properties>
-    <clojure.version>1.10.2-master-SNAPSHOT</clojure.version>
+    <clojure.version>1.10.1</clojure.version>
   </properties>
 
   <dependencies>
