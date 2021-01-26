@@ -333,7 +333,7 @@
         (is (thrown? clojure.lang.ExceptionInfo (add {:a 1 :b 2} {:c 3})))))))
 
 (comment
- 
+  
   (require '[clojure.test :refer (run-tests)])
   (in-ns 'clojure.test-clojure.spec)
   (run-tests)

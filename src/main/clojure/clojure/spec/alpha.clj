@@ -1819,14 +1819,6 @@
                 (conformer second #(map (fn [[k# v#]] {::k k# ::v v#}) %)))
        (fn [] (gen/fmap (fn [m#] (apply concat m#)) (gen mspec#))))))
 
-(comment
-`(let [mspec# (keys ~@kspecs)]
-     (with-gen (clojure.spec.alpha/& (* (cat ::k keyword? ::v any?)) ::kvs->map mspec#)
-       (fn [] (gen/fmap (fn [m#] (apply concat m#)) (gen mspec#)))))
-  
-
-)
-
 (defn ^:skip-wiki nonconforming
   "takes a spec and returns a spec that has the same properties except
   'conform' returns the original (not the conformed) value. Note, will specize regex ops."
