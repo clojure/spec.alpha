@@ -305,7 +305,7 @@
 (deftest keys-star
   (let [mspec (s/keys* :req-un [::a ::c])]
     (testing "conform and unform"
-      #_(check-conform-unform
+      (check-conform-unform
        mspec
        [[:a 1 :c 2]]
        [{:a 1 :c 2}])
