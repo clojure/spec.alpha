@@ -298,19 +298,31 @@
 
 (defn add [& {:keys [a b]}] (+ a b))
 (s/def ::a any?)
-(s/def ::b any?)
-(s/fdef add :args (s/keys* :opt [::a ::b]))
+(s/def ::c any?)
+(s/fdef add :args (s/keys* :opt [::a ::c]))
 (stest/instrument `add)
 
 (deftest keys-star
   (let [mspec (s/keys* :req-un [::a ::c])]
-    (testing "gens, and that explain data looks correct"
+    (testing "conform and unform"
       (check-conform-unform
        mspec
        [[:a 1 :c 2]]
-       [{:a 1 :c 2}]))
-    (testing "gens, and that explain data looks correct"
-      )))
+       [{:a 1 :c 2}])
+
+      (is (= {:a 1 :c 2} (s/conform mspec [:a 1 :c 2]))))
+    (testing "gens"
+      (is (= #{[:a :c]}
+             (->> (s/exercise mspec 200)
+                  (map (comp vec sort #(take-nth 2 %) first))
+                  (into #{})))))
+    (testing "that explain data looks correct"
+      (are [val expected]
+        (= expected (-> (s/explain-data mspec val) ::s/problems first :pred))
+        [:a 1 :c 2] nil
+        [:c 2 :a 1] nil
+        [:a 1]      '(clojure.core/fn [%] (clojure.core/contains? % :c))
+        []          '(clojure.core/fn [%] (clojure.core/contains? % :a))))))
 
 (comment
 (testing "that a seq of a singleton map is accepted in the keys* position"
