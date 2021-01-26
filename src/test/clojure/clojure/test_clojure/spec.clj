@@ -305,7 +305,7 @@
 (deftest keys-star
   (let [mspec (s/keys* :req-un [::a ::c])]
     (testing "conform and unform"
-      (check-conform-unform
+      #_(check-conform-unform
        mspec
        [[:a 1 :c 2]]
        [{:a 1 :c 2}])
@@ -318,22 +318,22 @@
                   (into #{})))))
     (testing "that explain data looks correct"
       (are [val expected]
-        (= expected (-> (s/explain-data mspec val) ::s/problems first :pred))
+        (= expected (-> (s/explain-data mspec val) ::s/problems first :reason))
         [:a 1 :c 2] nil
         [:c 2 :a 1] nil
-        [:a 1]      '(clojure.core/fn [%] (clojure.core/contains? % :c))
-        []          '(clojure.core/fn [%] (clojure.core/contains? % :a))))))
+        [:a 1]      "Insufficient input"
+        []          "Insufficient input"))
+    (testing "that a seq of a singleton map is accepted in the keys* position"
+      (let [m {:a 1 :b 2}
+            {:keys [a b]} (list m)]
+        (is (= 3 (add :a 1 :b 2)))
+        (is (= 3 (add {:a 1 :b 2})))
+        (is (= a 1))
+        (is (= b 2))
+        (is (thrown? clojure.lang.ExceptionInfo (add {:a 1 :b 2} {:c 3})))))))
 
 (comment
-(testing "that a seq of a singleton map is accepted in the keys* position"
-    (let [m {:a 1 :b 2}
-          {:keys [a b]} (list m)]
-      (is (= 3 (add :a 1 :b 2)))
-      (is (= 3 (add {:a 1 :b 2})))
-      (is (= a 1))
-      (is (= b 2))
-      (is (thrown? clojure.lang.ExceptionInfo (add {:a 1 :b 2} {:c 3})))))
-  
+ 
   (require '[clojure.test :refer (run-tests)])
   (in-ns 'clojure.test-clojure.spec)
   (run-tests)

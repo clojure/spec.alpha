@@ -1813,17 +1813,17 @@
   {:i1 42, :m {:a 1, :c 2, :d 4}, :i2 99}"
   [& kspecs]
   `(let [mspec# (keys ~@kspecs)]
-     (with-gen (clojure.spec.alpha/& (* (cat ::k keyword? ::v any?)) ::kvs->map mspec#)
-       (fn [] (gen/fmap (fn [m#] (apply concat m#)) (gen mspec#))))))
-
-(comment
-
-  `(let [mspec# (keys ~@kspecs)]
      (with-gen (clojure.spec.alpha/&
                 (alt :m (clojure.spec.alpha/& mspec# ::lift-map)
                      :s (clojure.spec.alpha/& (* (cat ::k keyword? ::v any?)) ::kvs->map mspec#))
                 (conformer second #(map (fn [[k# v#]] {::k k# ::v v#}) %)))
+       (fn [] (gen/fmap (fn [m#] (apply concat m#)) (gen mspec#))))))
+
+(comment
+`(let [mspec# (keys ~@kspecs)]
+     (with-gen (clojure.spec.alpha/& (* (cat ::k keyword? ::v any?)) ::kvs->map mspec#)
        (fn [] (gen/fmap (fn [m#] (apply concat m#)) (gen mspec#)))))
+  
 
 )
 
