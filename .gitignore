@@ -4,3 +4,5 @@
 /target/
 .lein*
 .nrepl-port
+_build/
+rebar.lock

@@ -14,14 +14,16 @@
   Rationale: https://clojure.org/about/spec
   Guide: https://clojure.org/guides/spec"}
   clojure.spec.alpha
-  (:refer-clojure :exclude [+ * and assert or cat def keys merge])
+  (:refer-clojure :exclude [+ * and assert or cat def keys merge #?@(:clje [tuple regex?])])
   (:require [clojure.walk :as walk]
             [clojure.spec.gen.alpha :as gen]
-            [clojure.string :as str]))
+            [clojure.string :as str])
+  #?(:clje (:import [clojerl Error String])))
 
 (alias 'c 'clojure.core)
 
-(set! *warn-on-reflection* true)
+(set! #?(:clj *warn-on-reflection*
+         :clje *warn-on-infer*) true)
 
 (def ^:dynamic *recursion-limit*
   "A soft limit on how many times a branching spec (or/alt/*/opt-keys/multi-spec)
@@ -73,13 +75,14 @@
   [k]
   (if (ident? k)
     (c/or (reg-resolve k)
-          (throw (Exception. (str "Unable to resolve spec: " k))))
+          (throw (#?(:clj Exception. :clje Error.)
+                  (str "Unable to resolve spec: " k))))
     k))
 
 (defn spec?
   "returns x if x is a spec object, else logical false"
   [x]
-  (when (instance? clojure.spec.alpha.Spec x)
+  (when (#?(:clj instance? :clje satisfies?) clojure.spec.alpha.Spec x)
     x))
 
 (defn regex?
@@ -92,7 +95,7 @@
    (ident? spec) spec
    (regex? spec) (assoc spec ::name name)
 
-   (instance? clojure.lang.IObj spec)
+   (#?(:clj instance? :clje satisfies?) #?(:clj clojure.lang.IObj :clje clojerl.IMeta) spec)
    (with-meta spec (assoc (meta spec) ::name name))))
 
 (defn- spec-name [spec]
@@ -100,8 +103,8 @@
    (ident? spec) spec
 
    (regex? spec) (::name spec)
-   
-   (instance? clojure.lang.IObj spec)
+
+   (#?(:clj instance? :clje satisfies?) #?(:clj clojure.lang.IObj :clje clojerl.IMeta) spec)
    (-> (meta spec) ::name)))
 
 (declare spec-impl)
@@ -123,31 +126,41 @@
   [spec-or-k]
   (c/or (maybe-spec spec-or-k)
         (when (ident? spec-or-k)
-          (throw (Exception. (str "Unable to resolve spec: " spec-or-k))))))
+          (throw (#?(:clj Exception. :clje Error.)
+                  (str "Unable to resolve spec: " spec-or-k))))))
 
 (defprotocol Specize
   (specize* [_] [_ form]))
 
-(defn- fn-sym [^Object f]
-  (let [[_ f-ns f-n] (re-matches #"(.*)\$(.*?)(__[0-9]+)?" (.. f getClass getName))]
-    ;; check for anonymous function
-    (when (not= "fn" f-n)
-      (symbol (clojure.lang.Compiler/demunge f-ns) (clojure.lang.Compiler/demunge f-n)))))
+#?(:clj
+   (defn- fn-sym [^Object f]
+     (let [[_ f-ns f-n] (re-matches #"(.*)\$(.*?)(__[0-9]+)?"
+                                    (.. f getClass getName))]
+       ;; check for anonymous function
+       (when (not= "fn" f-n)
+         (symbol (clojure.lang.Compiler/demunge f-ns)
+                 (clojure.lang.Compiler/demunge f-n)))))
+   :clje
+   (defn- fn-sym [f]
+     (let [[_ f-ns f-n] (re-matches #"#?'?<?(.*)/(.*?)>?$" (str f))]
+       ;; check for anonymous function
+       (when-not (re-find #"anonymous" f-n)
+         (symbol f-ns f-n)))))
 
 (extend-protocol Specize
-  clojure.lang.Keyword
+  #?(:clj clojure.lang.Keyword :clje clojerl.Keyword)
   (specize* ([k] (specize* (reg-resolve! k)))
             ([k _] (specize* (reg-resolve! k))))
 
-  clojure.lang.Symbol
+  #?(:clj clojure.lang.Symbol :clje clojerl.Symbol)
   (specize* ([s] (specize* (reg-resolve! s)))
             ([s _] (specize* (reg-resolve! s))))
 
-  clojure.lang.IPersistentSet
+  #?(:clj clojure.lang.IPersistentSet :clje clojerl.Set)
   (specize* ([s] (spec-impl s s nil nil))
             ([s form] (spec-impl form s nil nil)))
 
-  Object
+  #?(:clj Object :clje default)
   (specize* ([o] (if (c/and (not (map? o)) (ifn? o))
                    (if-let [s (fn-sym o)]
                      (spec-impl s o nil nil)
@@ -165,7 +178,7 @@
   (identical? ::invalid ret))
 
 (defn conform
-  "Given a spec and a value, returns :clojure.spec.alpha/invalid 
+  "Given a spec and a value, returns :clojure.spec.alpha/invalid
 	if value does not match spec, else the (possibly destructured) value."
   [spec x]
   (conform* (specize spec) x))
@@ -193,7 +206,7 @@
 
                      (c/and (seq? form) (= 'fn (first form)) (= '[%] (second form)))
                      (last form)
-                     
+
                      :else form))
                   form)
 
@@ -306,9 +319,14 @@
   "Returns a symbol from a symbol or var"
   [x]
   (if (var? x)
-    (let [^clojure.lang.Var v x]
-      (symbol (str (.name (.ns v)))
-              (str (.sym v))))
+    #?(:clj
+       (let [^clojure.lang.Var v x]
+         (symbol (str (.name (.ns v)))
+                 (str (.sym v))))
+       :clje
+       (let [^clojerl.Var v x]
+         (symbol (str (.namespace v))
+                 (str (.name v)))))
     x))
 
 (defn- unfn [expr]
@@ -322,7 +340,7 @@
 (defn- res [form]
   (cond
    (keyword? form) form
-   (symbol? form) (c/or (-> form resolve ->sym) form)   
+   (symbol? form) (c/or (-> form resolve ->sym) form)
    (sequential? form) (walk/postwalk #(if (symbol? %) (res %) %) (unfn form))
    :else form))
 
@@ -432,7 +450,7 @@
   (s/keys :req-un [:my.ns/x :my.ns/y])
 
   The above says keys :x and :y are required, and will be validated
-  and generated by specs (if they exist) named :my.ns/x :my.ns/y 
+  and generated by specs (if they exist) named :my.ns/x :my.ns/y
   respectively.
 
   In addition, the values of *all* namespace-qualified keys will be validated
@@ -519,6 +537,8 @@
         mopts)
       (mapcat identity))))
 
+#?(:clje (def MAX_VALUE 2147483647))
+
 (defmacro every
   "takes a pred and validates collection elements against that pred.
 
@@ -542,7 +562,7 @@
   :gen-max - the maximum coll size to generate (default 20)
   :into - one of [], (), {}, #{} - the default collection to generate into
       (default: empty coll as generated by :kind pred if supplied, else [])
-  
+
   Optionally takes :gen generator-fn, which must be a fn of no args that
   returns a test.check generator
 
@@ -557,11 +577,12 @@
         gx (gensym)
         cpreds (cond-> [(list (c/or kind `coll?) gx)]
                        count (conj `(= ~count (bounded-count ~count ~gx)))
-                       
+
                        (c/or min-count max-count)
                        (conj `(<= (c/or ~min-count 0)
                                    (bounded-count (if ~max-count (inc ~max-count) ~min-count) ~gx)
-                                   (c/or ~max-count Integer/MAX_VALUE)))
+                                   (c/or ~max-count #?(:clj Integer/MAX_VALUE
+                                                       :clje MAX_VALUE))))
 
                        distinct
                        (conj `(c/or (empty? ~gx) (apply distinct? ~gx))))]
@@ -687,7 +708,7 @@
 
   Optionally takes :gen generator-fn, which must be a fn of no args
   that returns a test.check generator."
-  
+
   [& {:keys [args ret fn gen] :or {ret `any?}}]
   `(fspec-impl (spec ~args) '~(res args)
                (spec ~ret) '~(res ret)
@@ -766,7 +787,8 @@
            (if cpred?
              (pred x)
              (if (pred x) x ::invalid))
-           (throw (Exception. (str (pr-str form) " is not a fn, expected predicate fn")))))
+           (throw (#?(:clj Exception. :clje Error.)
+                   (str (pr-str form) " is not a fn, expected predicate fn")))))
        x)))
 
 (defn valid?
@@ -827,12 +849,13 @@
     :as argm}]
   (let [k->s (zipmap (concat req-keys opt-keys) (concat req-specs opt-specs))
         keys->specnames #(c/or (k->s %) %)
-        id (java.util.UUID/randomUUID)]
+        id (#?(:clj java.util.UUID/randomUUID
+               :clje erlang.util.UUID/random))]
     (reify
      Specize
      (specize* [s] s)
      (specize* [s _] s)
-     
+
      Spec
      (conform* [_ m]
                (if (keys-pred m)
@@ -925,7 +948,7 @@
        Specize
        (specize* [s] s)
        (specize* [s _] s)
-       
+
        Spec
        (conform* [_ x] (let [ret (pred x)]
                          (if cpred?
@@ -934,7 +957,8 @@
        (unform* [_ x] (if cpred?
                         (if unc
                           (unc x)
-                          (throw (IllegalStateException. "no unform fn for conformer")))
+                          (throw (#?(:clj IllegalStateException. :clje Error.)
+                                  "no unform fn for conformer")))
                         x))
        (explain* [_ path via in x]
                  (when (invalid? (dt pred x form cpred?))
@@ -945,11 +969,12 @@
        (with-gen* [_ gfn] (spec-impl form pred gfn cpred? unc))
        (describe* [_] form)))))
 
-(defn ^:skip-wiki multi-spec-impl
+#_(defn ^:skip-wiki multi-spec-impl
   "Do not call this directly, use 'multi-spec'"
   ([form mmvar retag] (multi-spec-impl form mmvar retag nil))
   ([form mmvar retag gfn]
-     (let [id (java.util.UUID/randomUUID)
+     (let [id (#?(:clj java.util.UUID/randomUUID
+                  :clje erlang.util.UUID/random))
            predx #(let [^clojure.lang.MultiFn mm @mmvar]
                     (c/and (.getMethod mm ((.dispatchFn mm) %))
                            (mm %)))
@@ -961,14 +986,15 @@
         Specize
         (specize* [s] s)
         (specize* [s _] s)
-        
+
         Spec
         (conform* [_ x] (if-let [pred (predx x)]
                           (dt pred x form)
                           ::invalid))
         (unform* [_ x] (if-let [pred (predx x)]
                          (unform pred x)
-                         (throw (IllegalStateException. (str "No method of: " form " for dispatch value: " (dval x))))))
+                         (throw (#?(:clj IllegalStateException. :clje Error.)
+                                 (str "No method of: " form " for dispatch value: " (dval x))))))
         (explain* [_ path via in x]
                   (let [dv (dval x)
                         path (conj path dv)]
@@ -1005,7 +1031,7 @@
         Specize
         (specize* [s] s)
         (specize* [s _] s)
-        
+
         Spec
         (conform* [_ x]
                   (let [specs @specs]
@@ -1058,12 +1084,14 @@
         (describe* [_] `(tuple ~@forms))))))
 
 (defn- tagged-ret [tag ret]
-  (clojure.lang.MapEntry. tag ret))
+  #?(:clj (clojure.lang.MapEntry. tag ret)
+     :clje [tag ret]))
 
 (defn ^:skip-wiki or-spec-impl
   "Do not call this directly, use 'or'"
   [keys forms preds gfn]
-  (let [id (java.util.UUID/randomUUID)
+  (let [id (#?(:clj java.util.UUID/randomUUID
+               :clje erlang.util.UUID/random))
         kps (zipmap keys preds)
         specs (delay (mapv specize preds forms))
         cform (case (count preds)
@@ -1102,7 +1130,7 @@
      Specize
      (specize* [s] s)
      (specize* [s _] s)
-       
+
      Spec
      (conform* [_ x] (cform x))
      (unform* [_ [k x]] (unform (kps k) x))
@@ -1185,7 +1213,7 @@
      Specize
      (specize* [s] s)
      (specize* [s _] s)
-     
+
      Spec
      (conform* [_ x] (cform x))
      (unform* [_ x] (reduce #(unform %2 %1) x (reverse preds)))
@@ -1201,7 +1229,7 @@
    Specize
    (specize* [s] s)
    (specize* [s _] s)
-   
+
    Spec
    (conform* [_ x] (let [ms (map #(dt %1 x %2) preds forms)]
                      (if (some invalid? ms)
@@ -1236,9 +1264,12 @@
      (c/and (c/or min-count max-count)
             (not (<= (c/or min-count 0)
                      (bounded-count (if max-count (inc max-count) min-count) x)
-                     (c/or max-count Integer/MAX_VALUE))))
-     [{:path path :pred `(<= ~(c/or min-count 0) (c/count ~'%) ~(c/or max-count 'Integer/MAX_VALUE)) :val x :via via :in in}]
-     
+                     (c/or max-count #?(:clj Integer/MAX_VALUE
+                                        :clje MAX_VALUE)))))
+     [{:path path :pred `(<= ~(c/or min-count 0) (c/count ~'%) ~(c/or max-count #?(:clj 'Integer/MAX_VALUE
+                                                                                   :clje 'MAX_VALUE)))
+       :val x :via via :in in}]
+
      (c/and distinct (not (empty? x)) (not (apply distinct? x)))
      [{:path path :pred 'distinct? :val x :via via :in in}])))
 
@@ -1286,7 +1317,7 @@
         Specize
         (specize* [s] s)
         (specize* [s _] s)
-        
+
         Spec
         (conform* [_ x]
                   (let [spec @spec]
@@ -1302,11 +1333,11 @@
                                ::invalid
                                (recur (add ret i v cv) (inc i) vs)))
                            (complete ret))))
-                     
-                     
+
+
                      :else
                      (if (indexed? x)
-                       (let [step (max 1 (long (/ (c/count x) *coll-check-limit*)))]
+                       (let [step (max 1 (#?(:clj long :clje int) (/ (c/count x) *coll-check-limit*)))]
                          (loop [i 0]
                            (if (>= i (c/count x))
                              x
@@ -1369,7 +1400,7 @@
 
                        :else
                        (gen/vector pgen 0 gen-max))))))))
-        
+
         (with-gen* [_ gfn] (every-impl form pred opts gfn))
         (describe* [_] (c/or describe-form `(every ~(res form) ~@(mapcat identity opts))))))))
 
@@ -1403,7 +1434,8 @@
 
 (defn- rep* [p1 p2 ret splice form]
   (when p1
-    (let [r {::op ::rep, :p2 p2, :splice splice, :forms form :id (java.util.UUID/randomUUID)}]
+    (let [r {::op ::rep, :p2 p2, :splice splice, :forms form :id (#?(:clj java.util.UUID/randomUUID
+                                                                     :clje erlang.util.UUID/random))}]
       (if (accept? p1)
         (assoc r :p1 p2 :ret (conj ret (:ret p1)))
         (assoc r :p1 p1, :ret ret)))))
@@ -1435,7 +1467,7 @@
   (let [[[p1 & pr :as ps] [k1 :as ks] forms] (filter-alt ps ks forms identity)]
     (when ps
       (let [ret {::op ::alt, :ps ps, :ks ks :forms forms}]
-        (if (nil? pr) 
+        (if (nil? pr)
           (if k1
             (if (accept? p1)
               (accept (tagged-ret k1 (:ret p1)))
@@ -1448,7 +1480,8 @@
 
 (defn ^:skip-wiki alt-impl
   "Do not call this directly, use 'alt'"
-  [ks ps forms] (assoc (alt* ps ks forms) :id (java.util.UUID/randomUUID)))
+  [ks ps forms] (assoc (alt* ps ks forms) :id (#?(:clj java.util.UUID/randomUUID
+                                                  :clje erlang.util.UUID/random))))
 
 (defn ^:skip-wiki maybe-impl
   "Do not call this directly, use '?'"
@@ -1545,7 +1578,7 @@
             ::rep (alt2 (rep* (deriv p1 x) p2 ret splice forms)
                         (when (accept-nil? p1) (deriv (rep* p2 p2 (add-ret p1 ret nil) splice forms) x)))))))
 
-(defn- op-describe [p]  
+(defn- op-describe [p]
   (let [{:keys [::op ps ks forms splice p1 rep+ maybe amp] :as p} (reg-resolve! p)]
     ;;(prn {:op op :ks ks :forms forms :p p})
     (when p
@@ -1703,7 +1736,7 @@
    Specize
    (specize* [s] s)
    (specize* [s _] s)
-   
+
    Spec
    (conform* [_ x]
              (if (c/or (nil? x) (sequential? x))
@@ -1729,7 +1762,7 @@
     (when-not (invalid? cargs)
       (let [ret (apply f args)
             cret (conform (:ret specs) ret)]
-        (c/and (not (invalid? cret)) 
+        (c/and (not (invalid? cret))
                (if (:fn specs)
                  (pvalid? (:fn specs) {:args cargs :ret cret})
                  true))))))
@@ -1749,30 +1782,40 @@
   [argspec aform retspec rform fnspec fform gfn]
   (let [specs {:args argspec :ret retspec :fn fnspec}]
     (reify
-     clojure.lang.ILookup
-     (valAt [this k] (get specs k))
-     (valAt [_ k not-found] (get specs k not-found))
+     #?@(:clj
+         [clojure.lang.ILookup
+          (valAt [this k] (get specs k))
+          (valAt [_ k not-found] (get specs k not-found))]
+         :clje
+         [clojerl.ILookup
+          (get [this k] (get specs k))
+          (get [_ k not-found] (get specs k not-found))])
 
      Specize
      (specize* [s] s)
      (specize* [s _] s)
-       
+
      Spec
      (conform* [this f] (if argspec
                           (if (ifn? f)
                             (if (identical? f (validate-fn f specs *fspec-iterations*)) f ::invalid)
                             ::invalid)
-                          (throw (Exception. (str "Can't conform fspec without args spec: " (pr-str (describe this)))))))
+                          (throw (#?(:clj Exception. :clje Error.)
+                                  (str "Can't conform fspec without args spec: " (pr-str (describe this)))))))
      (unform* [_ f] f)
      (explain* [_ path via in f]
                (if (ifn? f)
                  (let [args (validate-fn f specs 100)]
                    (if (identical? f args) ;;hrm, we might not be able to reproduce
                      nil
-                     (let [ret (try (apply f args) (catch Throwable t t))]
-                       (if (instance? Throwable ret)
+                     (let [ret (try (apply f args) (catch #?(:clj Throwable :clje :error) t t))]
+                       (if #?(:clj (instance? Throwable ret)
+                              :clje (satisfies? clojerl.IError ret))
                          ;;TODO add exception data
-                         [{:path path :pred '(apply fn) :val args :reason (.getMessage ^Throwable ret) :via via :in in}]
+                         [{:path path :pred '(apply fn) :val args
+                           :reason #?(:clj (.getMessage ^Throwable ret)
+                                      :clje (.message ^clojerl.IError ret))
+                           :via via :in in}]
 
                          (let [cret (dt retspec ret rform)]
                            (if (invalid? cret)
@@ -1821,7 +1864,7 @@
      Specize
      (specize* [s] s)
      (specize* [s _] s)
-     
+
      Spec
      (conform* [_ x] (let [ret (conform* @spec x)]
                        (if (invalid? ret)
@@ -1886,7 +1929,8 @@
        (if-let [arg-spec (c/and fspec (:args fspec))]
          (for [args (gen/sample (gen arg-spec) n)]
            [args (apply f args)])
-         (throw (Exception. "No :args spec found, can't generate"))))))
+         (throw (#?(:clj Exception. :clje Error.)
+                 "No :args spec found, can't generate"))))))
 
 (defn inst-in-range?
   "Return true if inst at or after start and before end"
@@ -1901,7 +1945,7 @@
   [start end]
   `(let [st# (inst-ms ~start)
          et# (inst-ms ~end)
-         mkdate# (fn [d#] (java.util.Date. ^{:tag ~'long} d#))]
+         mkdate# (fn [d#] (#?(:clj java.util.Date. :clje erlang.util.Date.) ^{:tag ~'long} d#))]
      (spec (and inst? #(inst-in-range? ~start ~end %))
        :gen (fn []
               (gen/fmap mkdate#
@@ -1920,22 +1964,35 @@
   `(spec (and int? #(int-in-range? ~start ~end %))
      :gen #(gen/large-integer* {:min ~start :max (dec ~end)})))
 
-(defmacro double-in
-  "Specs a 64-bit floating point number. Options:
+#?(:clj
+   (defmacro double-in
+     "Specs a 64-bit floating point number. Options:
 
-    :infinite? - whether +/- infinity allowed (default true)
-    :NaN?      - whether NaN allowed (default true)
-    :min       - minimum value (inclusive, default none)
-    :max       - maximum value (inclusive, default none)"
-  [& {:keys [infinite? NaN? min max]
-    :or {infinite? true NaN? true}
-    :as m}]
-  `(spec (and c/double?
-              ~@(when-not infinite? '[#(not (Double/isInfinite %))])
-              ~@(when-not NaN? '[#(not (Double/isNaN %))])
-              ~@(when max `[#(<= % ~max)])
-              ~@(when min `[#(<= ~min %)]))
-         :gen #(gen/double* ~m)))
+  :infinite? - whether +/- infinity allowed (default true)
+  :NaN?      - whether NaN allowed (default true)
+  :min       - minimum value (inclusive, default none)
+  :max       - maximum value (inclusive, default none)"
+     [& {:keys [infinite? NaN? min max]
+         :or {infinite? true NaN? true}
+         :as m}]
+     `(spec (and c/double?
+                 ~@(when-not infinite? '[#(not (Double/isInfinite %))])
+                 ~@(when-not NaN? '[#(not (Double/isNaN %))])
+                 ~@(when max `[#(<= % ~max)])
+                 ~@(when min `[#(<= ~min %)]))
+            :gen #(gen/double* ~m)))
+   :clje
+   (defmacro double-in
+     "Specs a 64-bit floating point number. Options:
+
+  :min       - minimum value (inclusive, default none)
+  :max       - maximum value (inclusive, default none)"
+     [& {:keys [min max]
+         :as m}]
+     `(spec (and c/float?
+                 ~@(when max `[#(<= % ~max)])
+                 ~@(when min `[#(<= ~min %)]))
+            :gen #(gen/double* ~m))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; assert ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defonce
@@ -1947,12 +2004,22 @@ will eliminate all spec assert overhead. See 'assert'.
 Initially set to boolean value of clojure.spec.compile-asserts
 system property. Defaults to true."}
   *compile-asserts*
-  (not= "false" (System/getProperty "clojure.spec.compile-asserts")))
+  (not= "false"
+        #?(:clj (System/getProperty "clojure.spec.compile-asserts")
+           :clje (erlang/list_to_binary (os/getenv #erl "clojure.spec.compile-asserts"
+                                                   #erl "false")))))
+
+#?(:clje
+   (defonce ^:dynamic *check-asserts*
+     (not= "false"
+           (erlang/list_to_binary (os/getenv #erl "clojure.spec.check-asserts"
+                                             #erl "false")))))
 
 (defn check-asserts?
   "Returns the value set by check-asserts."
   []
-  clojure.lang.RT/checkSpecAsserts)
+  #?(:clj clojure.lang.RT/checkSpecAsserts
+     :clje *check-asserts*))
 
 (defn check-asserts
   "Enable or disable spec asserts that have been compiled
@@ -1961,7 +2028,9 @@ with '*compile-asserts*' true.  See 'assert'.
 Initially set to boolean value of clojure.spec.check-asserts
 system property. Defaults to false."
   [flag]
-  (set! (. clojure.lang.RT checkSpecAsserts) flag))
+  (set! #?(:clj (. clojure.lang.RT checkSpecAsserts)
+           :clje *check-asserts*)
+        flag))
 
 (defn assert*
   "Do not call this directly, use 'assert'."
@@ -1994,5 +2063,3 @@ set. You can toggle check-asserts? with (check-asserts bool)."
        (assert* ~spec ~x)
        ~x)
     x))
-
-

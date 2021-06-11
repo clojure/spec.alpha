@@ -1,0 +1,11 @@
+{ application, spec_alpha
+, [ {vsn, git}
+  , {description, "Specification of data and functions"}
+  , {modules, []}
+  , { applications
+    , [ stdlib
+      , kernel
+      ]
+    }
+  ]
+}.
