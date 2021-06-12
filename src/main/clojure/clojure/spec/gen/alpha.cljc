@@ -197,74 +197,86 @@ gens, each of which should generate something sequential."
 
 (defn- qualified? [ident] (not (nil? (namespace ident))))
 
-(#?(:clj def :clje defn) ^:private
-  gen-builtins
-  #?(:clje [])
-  (#?(:clj c/delay :clje do)
-    (let [simple (simple-type-printable)]
-      {any? (one-of [(return nil) (any-printable)])
-       some? (such-that some? (any-printable))
-       number? (one-of [(large-integer) (double)])
-       integer? (large-integer)
-       int? (large-integer)
-       pos-int? (large-integer* {:min 1})
-       neg-int? (large-integer* {:max -1})
-       nat-int? (large-integer* {:min 0})
-       float? (double)
-       #?@(:clj [double? (double)])
-       boolean? (boolean)
-       string? (string-alphanumeric)
-       ident? (one-of [(keyword-ns) (symbol-ns)])
-       simple-ident? (one-of [(keyword) (symbol)])
-       qualified-ident? (such-that qualified? (one-of [(keyword-ns) (symbol-ns)]))
-       keyword? (keyword-ns)
-       simple-keyword? (keyword)
-       qualified-keyword? (such-that qualified? (keyword-ns))
-       symbol? (symbol-ns)
-       simple-symbol? (symbol)
-       qualified-symbol? (such-that qualified? (symbol-ns))
-       uuid? (uuid)
-       #?@(:clj
-           [uri? (fmap #(java.net.URI/create (str "http://" % ".com")) (uuid))
-            decimal? (fmap #(BigDecimal/valueOf %)
-                           (double* {:infinite? false :NaN? false}))])
-       inst? (fmap #?(:clj #(java.util.Date. %) :clje #(erlang.util.Date. (erlang/abs %)))
-                   (large-integer))
-       seqable? (one-of [(return nil)
-                         (list simple)
-                         (vector simple)
-                         (map simple simple)
-                         (set simple)
-                         (string-alphanumeric)])
-       indexed? (vector simple)
-       map? (map simple simple)
-       vector? (vector simple)
-       list? (list simple)
-       seq? (list simple)
-       char? (char)
-       set? (set simple)
-       nil? (return nil)
-       false? (return false)
-       true? (return true)
-       zero? (return 0)
-       rational? (one-of [(large-integer) (ratio)])
-       coll? (one-of [(map simple simple)
-                      (list simple)
-                      (vector simple)
-                      (set simple)])
-       empty? (elements [nil '() [] {} #{}])
-       associative? (one-of [(map simple simple) (vector simple)])
-       sequential? (one-of [(list simple) (vector simple)])
-       #?@(:clj
-           [ratio? (such-that ratio? (ratio))
-            bytes? (bytes)])})))
+(defn gen-builtins*
+  []
+  (let [simple (simple-type-printable)]
+    {any? (one-of [(return nil) (any-printable)])
+     some? (such-that some? (any-printable))
+     number? (one-of [(large-integer) (double)])
+     integer? (large-integer)
+     int? (large-integer)
+     pos-int? (large-integer* {:min 1})
+     neg-int? (large-integer* {:max -1})
+     nat-int? (large-integer* {:min 0})
+     float? (double)
+     #?@(:clj [double? (double)])
+     boolean? (boolean)
+     string? (string-alphanumeric)
+     ident? (one-of [(keyword-ns) (symbol-ns)])
+     simple-ident? (one-of [(keyword) (symbol)])
+     qualified-ident? (such-that qualified? (one-of [(keyword-ns) (symbol-ns)]))
+     keyword? (keyword-ns)
+     simple-keyword? (keyword)
+     qualified-keyword? (such-that qualified? (keyword-ns))
+     symbol? (symbol-ns)
+     simple-symbol? (symbol)
+     qualified-symbol? (such-that qualified? (symbol-ns))
+     uuid? (uuid)
+     #?@(:clj
+         [uri? (fmap #(java.net.URI/create (str "http://" % ".com")) (uuid))
+          decimal? (fmap #(BigDecimal/valueOf %)
+                         (double* {:infinite? false :NaN? false}))])
+     inst? (fmap #?(:clj #(java.util.Date. %) :clje #(erlang.util.Date. (erlang/abs %)))
+                 (large-integer))
+     seqable? (one-of [(return nil)
+                       (list simple)
+                       (vector simple)
+                       (map simple simple)
+                       (set simple)
+                       (string-alphanumeric)])
+     indexed? (vector simple)
+     map? (map simple simple)
+     vector? (vector simple)
+     list? (list simple)
+     seq? (list simple)
+     char? (char)
+     set? (set simple)
+     nil? (return nil)
+     false? (return false)
+     true? (return true)
+     zero? (return 0)
+     rational? (one-of [(large-integer) (ratio)])
+     coll? (one-of [(map simple simple)
+                    (list simple)
+                    (vector simple)
+                    (set simple)])
+     empty? (elements [nil '() [] {} #{}])
+     associative? (one-of [(map simple simple) (vector simple)])
+     sequential? (one-of [(list simple) (vector simple)])
+     #?@(:clj
+         [ratio? (such-that ratio? (ratio))
+          bytes? (bytes)])}))
+
+#?(:clj
+   (def ^:private
+     gen-builtins
+     (c/delay (gen-builtins*)))
+   :clje
+   (do
+     (def gen-builtins-atom (atom nil))
+     (def gen-builtins (reify
+                         clojerl.IDeref
+                         (deref [_]
+                           (if-let [x @gen-builtins-atom]
+                             x
+                             (reset! gen-builtins-atom (gen-builtins*))))))))
 
 (defn gen-for-pred
   "Given a predicate, returns a built-in generator if one exists."
   [pred]
   (if (set? pred)
     (elements pred)
-    (get #?(:clj @gen-builtins :clje (gen-builtins)) pred)))
+    (get @gen-builtins pred)))
 
 (comment
   (require :reload 'clojure.spec.gen.alpha)
