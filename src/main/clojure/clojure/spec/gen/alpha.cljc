@@ -228,7 +228,7 @@ gens, each of which should generate something sequential."
            [uri? (fmap #(java.net.URI/create (str "http://" % ".com")) (uuid))
             decimal? (fmap #(BigDecimal/valueOf %)
                            (double* {:infinite? false :NaN? false}))])
-       inst? (fmap #?(:clj #(erlang.util.Date. %) :clje #(erlang.util.Date. (erlang/abs %)))
+       inst? (fmap #?(:clj #(java.util.Date. %) :clje #(erlang.util.Date. (erlang/abs %)))
                    (large-integer))
        seqable? (one-of [(return nil)
                          (list simple)
