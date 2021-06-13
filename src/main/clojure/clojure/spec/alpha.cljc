@@ -969,16 +969,21 @@
        (with-gen* [_ gfn] (spec-impl form pred gfn cpred? unc))
        (describe* [_] form)))))
 
-#_(defn ^:skip-wiki multi-spec-impl
+(defn ^:skip-wiki multi-spec-impl
   "Do not call this directly, use 'multi-spec'"
   ([form mmvar retag] (multi-spec-impl form mmvar retag nil))
   ([form mmvar retag gfn]
      (let [id (#?(:clj java.util.UUID/randomUUID
                   :clje erlang.util.UUID/random))
-           predx #(let [^clojure.lang.MultiFn mm @mmvar]
-                    (c/and (.getMethod mm ((.dispatchFn mm) %))
-                           (mm %)))
-           dval #((.dispatchFn ^clojure.lang.MultiFn @mmvar) %)
+           predx #?(:clj #(let [^clojure.lang.MultiFn mm @mmvar]
+                            (c/and (.getMethod mm ((.dispatchFn mm) %))
+                                   (mm %)))
+                    :clje #(let [dispatch-fn (clj_multimethod/get_dispatch_fun mmvar)]
+                             (c/and (get-method mmvar (dispatch-fn %))
+                                    (mmvar %))))
+           dval #?(:clj #((.dispatchFn ^clojure.lang.MultiFn @mmvar) %)
+                   :clje #(let [dispatch-fn (clj_multimethod/get_dispatch_fun mmvar)]
+                            (dispatch-fn %)))
            tag (if (keyword? retag)
                  #(assoc %1 retag %2)
                  retag)]
