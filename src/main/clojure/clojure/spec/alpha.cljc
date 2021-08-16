@@ -1506,8 +1506,10 @@
                         (c/or (seq ks) (repeat nil))
                         (c/or (seq forms) (repeat nil)))
                    (filter #(-> % first f)))]
-      [(seq (map first pks)) (when ks (seq (map second pks))) (when forms (seq (map #(nth % 2) pks)))])
-    [(seq (filter f ps)) ks forms]))
+      [(#?(:clj seq :clje clj_rt/to_list) (map first pks))
+       (when ks (#?(:clj seq :clje clj_rt/to_list) (map second pks)))
+       (when forms (#?(:clj seq :clje clj_rt/to_list) (map #(nth % 2) pks)))])
+    [(#?(:clj seq :clje clj_rt/to_list) (filter f ps)) ks forms]))
 
 (defn- alt* [ps ks forms]
   (let [[[p1 & pr :as ps] [k1 :as ks] forms] (filter-alt ps ks forms identity)]
