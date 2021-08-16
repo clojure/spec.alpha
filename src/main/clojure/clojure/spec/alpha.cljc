@@ -43,6 +43,21 @@
   "The number of errors reported by explain in a collection spec'ed with 'every'"
   20)
 
+#?(:clje
+   (defn get-persistent-term
+     ([k]
+      (get-persistent-term k nil))
+     ([k default]
+      (persistent_term/get #erl[::spec k] default))))
+
+#?(:clje
+   (defn erase-persistent-term [k]
+     (persistent_term/erase #erl[::spec k])))
+
+#?(:clje
+   (defn put-persistent-term [k v]
+     (persistent_term/put #erl[::spec k] v)))
+
 (defprotocol Spec
   (conform* [spec x])
   (unform* [spec y])
@@ -51,23 +66,26 @@
   (with-gen* [spec gfn])
   (describe* [spec]))
 
-(defonce ^:private registry-ref (atom {}))
+#?(:clj (defonce ^:private registry-ref (atom {})))
 
-(defn- deep-resolve [reg k]
+(defn- deep-resolve [#?(:clj reg) k]
   (loop [spec k]
     (if (ident? spec)
-      (recur (get reg spec))
+      (recur #?(:clj (get reg spec)
+                :clje (get-persistent-term spec)))
       spec)))
 
 (defn- reg-resolve
   "returns the spec/regex at end of alias chain starting with k, nil if not found, k if k not ident"
   [k]
   (if (ident? k)
-    (let [reg @registry-ref
-          spec (get reg k)]
+    (let #?(:clj [reg @registry-ref
+                  spec (get reg k)]
+            :clje [spec (get-persistent-term k)])
       (if-not (ident? spec)
         spec
-        (deep-resolve reg spec)))
+        #?(:clj (deep-resolve reg spec)
+           :clje (deep-resolve spec))))
     k))
 
 (defn- reg-resolve!
@@ -349,11 +367,14 @@
   [k form spec]
   (c/assert (c/and (ident? k) (namespace k)) "k must be namespaced keyword or resolvable symbol")
   (if (nil? spec)
-    (swap! registry-ref dissoc k)
-    (let [spec (if (c/or (spec? spec) (regex? spec) (get @registry-ref spec))
+    #?(:clj (swap! registry-ref dissoc k)
+       :clje (erase-persistent-term k))
+    (let [spec (if (c/or (spec? spec) (regex? spec) #?(:clj (get @registry-ref spec)
+                                                       :clje (get-persistent-term spec)))
                  spec
                  (spec-impl form spec nil nil))]
-      (swap! registry-ref assoc k (with-name spec k))))
+      #?(:clj (swap! registry-ref assoc k (with-name spec k))
+         :clje (put-persistent-term k (with-name spec k)))))
   k)
 
 (defn- ns-qualify
@@ -373,15 +394,32 @@
   (let [k (if (symbol? k) (ns-qualify k) k)]
     `(def-impl '~k '~(res spec-form) ~spec-form)))
 
-(defn registry
-  "returns the registry map, prefer 'get-spec' to lookup a spec by name"
-  []
-  @registry-ref)
+#?(:clj
+   (defn registry
+     "returns the registry map, prefer 'get-spec' to lookup a spec by name"
+     []
+     @registry-ref)
+   :clje
+   (defn registry
+     "returns the registry map, prefer 'get-spec' to lookup a spec by name"
+     []
+     (loop [[x & xs] (persistent_term/get)
+            reg {}]
+       (if-not x
+         reg
+         (case* x
+           #erl[#erl[::spec k] v]
+           (recur xs (assoc reg k v))
+           _
+           (recur xs reg))))))
 
 (defn get-spec
   "Returns spec registered for keyword/symbol/var k, or nil."
   [k]
-  (get (registry) (if (keyword? k) k (->sym k))))
+  #?(:clj
+     (get (registry) (if (keyword? k) k (->sym k)))
+     :clje
+     (get-persistent-term (if (keyword? k) k (->sym k)))))
 
 (defmacro spec
   "Takes a single predicate form, e.g. can be the name of a predicate,
@@ -859,11 +897,12 @@
      Spec
      (conform* [_ m]
                (if (keys-pred m)
-                 (let [reg (registry)]
+                 (let [#?@(:clj [reg (registry)])]
                    (loop [ret m, [[k v] & ks :as keys] m]
                      (if keys
                        (let [sname (keys->specnames k)]
-                         (if-let [s (get reg sname)]
+                         (if-let [s #?(:clj (get reg sname)
+                                       :clje (get-persistent-term sname))]
                            (let [cv (conform s v)]
                              (if (invalid? cv)
                                ::invalid
@@ -873,10 +912,11 @@
                        ret)))
                  ::invalid))
      (unform* [_ m]
-              (let [reg (registry)]
+              (let [#?@(:clj [reg (registry)])]
                 (loop [ret m, [k & ks :as keys] (c/keys m)]
                   (if keys
-                    (if (contains? reg (keys->specnames k))
+                    (if #?(:clj (contains? reg (keys->specnames k))
+                           :clje (not (get-persistent-term (keys->specnames k))))
                       (let [cv (get m k)
                             v (unform (keys->specnames k) cv)]
                         (recur (if (identical? cv v) ret (assoc ret k v))
@@ -886,7 +926,7 @@
      (explain* [_ path via in x]
                (if-not (map? x)
                  [{:path path :pred `map? :val x :via via :in in}]
-                 (let [reg (registry)]
+                 (let [#?@(:clj [reg (registry)])]
                    (apply concat
                           (when-let [probs (->> (map (fn [pred form] (when-not (pred x) form))
                                                      pred-exprs pred-forms)
@@ -896,7 +936,8 @@
                              #(identity {:path path :pred % :val x :via via :in in})
                              probs))
                           (map (fn [[k v]]
-                                 (when-not (c/or (not (contains? reg (keys->specnames k)))
+                                 (when-not (c/or #?(:clj (not (contains? reg (keys->specnames k)))
+                                                    :clje (get-persistent-term (keys->specnames k)))
                                                  (pvalid? (keys->specnames k) v k))
                                    (explain-1 (keys->specnames k) (keys->specnames k) (conj path k) via (conj in k) v)))
                                (seq x))))))
