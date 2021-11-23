@@ -1,5 +1,9 @@
 # Change Log for spec.alpha
 
+## Version 0.3.214 on Nov 23, 2021
+
+* [CLJ-2606](https://clojure.atlassian.net/browse/CLJ-2606) Add support to transform trailing maps on instrumented functions into kvs
+
 ## Version 0.2.194 on Jan 5, 2021
 
 * Type hint return value of s/explain-str
