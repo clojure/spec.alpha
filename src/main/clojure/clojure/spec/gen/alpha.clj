@@ -14,25 +14,11 @@
 
 (defonce ^:private dynalock (Object.))
 
-(defmacro ^:private locking2
-  "Executes exprs in an implicit do, while holding the monitor of x.
-  Will release the monitor of x in all circumstances."
-  {:added "1.0"}
-  [x & body]
-  `(let [lockee# ~x]
-     (try
-       (let [locklocal# lockee#]
-         (monitor-enter locklocal#)
-         (try
-           ~@body
-           (finally
-            (monitor-exit locklocal#)))))))
-
 (defn- dynaload
   [s]
   (let [ns (namespace s)]
     (assert ns)
-    (locking2 dynalock
+    (locking dynalock
       (require (c/symbol ns)))
     (let [v (resolve s)]
       (if v

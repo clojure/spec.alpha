@@ -1,5 +1,10 @@
 # Change Log for spec.alpha
 
+## next
+
+* Update Clojure dependency to Clojure 1.10.3
+* Remove locking workaround
+
 ## Version 0.3.214 on Nov 23, 2021
 
 * [CLJ-2606](https://clojure.atlassian.net/browse/CLJ-2606) Add support to transform trailing maps on instrumented functions into kvs
