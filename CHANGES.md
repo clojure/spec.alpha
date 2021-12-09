@@ -4,6 +4,7 @@
 
 * Update Clojure dependency to Clojure 1.10.3
 * Remove locking workaround
+* Add multi-spec tests
 
 ## Version 0.3.214 on Nov 23, 2021
 
