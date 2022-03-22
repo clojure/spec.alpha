@@ -1,6 +1,6 @@
 # Change Log for spec.alpha
 
-## next
+## Version 0.3.218 on Nov 26, 2021
 
 * Update Clojure dependency to Clojure 1.10.3
 * Remove locking workaround
