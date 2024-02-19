@@ -1,8 +1,10 @@
 # Change Log for spec.alpha
 
-## next
+## Version 0.4.233 on Feb 19, 2024
 
 * Fix typo in docstring
+* Remove duplicated lazy combinator
+* Update parent pom and dependency to Clojure 1.11.1
 
 ## Version 0.3.218 on Nov 26, 2021
 
