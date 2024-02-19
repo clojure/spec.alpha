@@ -16,7 +16,7 @@
   <licenses>
     <license>
       <name>Eclipse Public License 1.0</name>
-      <url>http://opensource.org/licenses/eclipse-1.0.php</url>
+      <url>https://opensource.org/license/epl-1-0/</url>
       <distribution>repo</distribution>
     </license>
   </licenses>
@@ -24,7 +24,7 @@
   <parent>
     <groupId>org.clojure</groupId>
     <artifactId>pom.contrib</artifactId>
-    <version>1.1.0</version>
+    <version>1.2.0</version>
   </parent>
 
   <developers>
@@ -36,7 +36,7 @@
   </developers>
 
   <properties>
-    <clojure.version>1.10.3</clojure.version>
+    <clojure.version>1.11.1</clojure.version>
   </properties>
 
   <dependencies>
@@ -49,7 +49,7 @@
     <dependency>
       <groupId>org.clojure</groupId>
       <artifactId>test.check</artifactId>
-      <version>0.9.0</version>
+      <version>1.1.1</version>
       <scope>test</scope>
     </dependency>
   </dependencies>
