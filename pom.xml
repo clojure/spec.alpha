@@ -36,7 +36,7 @@
   </developers>
 
   <properties>
-    <clojure.version>1.11.1</clojure.version>
+    <clojure.version>1.11.3</clojure.version>
   </properties>
 
   <dependencies>

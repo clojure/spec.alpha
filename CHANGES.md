@@ -1,5 +1,9 @@
 # Change Log for spec.alpha
 
+## next
+
+* Update dependency to Clojure 1.11.3
+
 ## Version 0.4.233 on Feb 19, 2024
 
 * Fix typo in docstring
