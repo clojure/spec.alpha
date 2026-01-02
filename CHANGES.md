@@ -1,5 +1,9 @@
 # Change Log for spec.alpha
 
+## Version 0.6.249 on Jan 2, 2026
+
+* Update parent pom and Clojure dep to 1.12.4
+
 ## Version 0.5.238 on May 10, 2024
 
 * Update dependency to Clojure 1.11.3
